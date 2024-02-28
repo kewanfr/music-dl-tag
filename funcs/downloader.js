@@ -55,5 +55,37 @@ export default class MusicDownloader {
     }
   };
 
+  metadata = async (track_data, filename) => {
+    const outputOptions = ["-map", "0:0", "-codec", "copy"];
+
+    const metadata = {
+      title: track_data.name,
+      album: track_data.album.name,
+      artist: track_data.artist,
+      album_artist: track_data.album_artist,
+      date: track_data.album.release_date,
+      track: track_data.track_position,
+    };
+
+    Object.keys(metadata).forEach((key) => {
+      outputOptions.push("-metadata", `${String(key)}=${metadata[key]}`);
+    });
+
+    const out = `${filename.split(".")[0]}_temp.mp3`;
+    await new Promise((resolve, reject) => {
+      Ffmpeg()
+        .input(filename)
+        .on("error", (err) => {
+          reject(err);
+        })
+        .on("end", () => resolve(filename))
+        .addOutputOptions(...outputOptions)
+        .saveToFile(out);
+    });
+    fs.unlinkSync(filename);
+    fs.renameSync(out, filename);
+    return filename;
+  };
+
 }
 

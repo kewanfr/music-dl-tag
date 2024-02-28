@@ -101,77 +101,6 @@ class MusicFunctions {
     return mp3OutputPath;
   }
 
-  async parseSearchResult(item, type = "track") {
-    return new Promise((resolve, reject) => {
-    switch (type) {
-      case "track":
-        let artists = item.artists.map((a) => {
-          return {
-            name: a.name,
-            id: a.i,
-            uri: a.external_urls.spotify,
-          };
-        });
-
-        let album = {
-          id: item.album.id,
-          uri: item.album.external_urls.spotify,
-          name: item.album.name,
-          image: {
-            url: item.album.images[0].url,
-            height: item.album.images[0].height,
-            width: item.album.images[0].width,
-          },
-          release_date: item.album.release_date,
-          year: item.album.release_date.split("-")[0],
-        };
-
-        let artist = artists.map((a) => a.name).join(" / ");
-
-        resolve({
-          name: item.name,
-          artist,
-          album_artist: artists[0].name,
-          cover: album.image.url,
-          id: item.id,
-          uri: item.external_urls.spotify,
-          artists,
-          duration_ms: item.duration_ms,
-          album,
-          preview_url: item.preview_url,
-          track_position: item.track_number,
-        });
-
-      case "album":
-        resolve( {
-          name: item.name,
-          id: item.id,
-          uri: item.external_urls.spotify,
-          cover: item.images[0]?.url || null,
-          release_date: item.release_date,
-          year: item.release_date.split("-")[0],
-          total_tracks: item.total_tracks,
-          artists: item.artists.map((a) => a.name).join(" / "),
-          album_artist: item.artists[0].name,
-        });
-
-      case "artist":
-        resolve({
-          name: item.name,
-          id: item.id,
-          genre: item.genres?.join(", "),
-          followers: item.followers.total,
-          popularity: item.popularity,
-          uri: item.external_urls.spotify,
-          // images: item.images,
-          cover: item.images[0]?.url || null,
-        });
-
-      default:
-        resolve(item);
-    }
-  });
-  }
 
   async getArtistTracks(artist_id) {
     const token = await this.spotifyClient.getToken();
@@ -186,7 +115,6 @@ class MusicFunctions {
 
     const data = await response.json();
 
-
     data.tracks = data.tracks.map((item) => {
       let artist = item.artists.map((a) => a.name).join(" / ");
 
@@ -198,20 +126,9 @@ class MusicFunctions {
         id: item.id,
         uri: item.external_urls.spotify,
       };
-    }
-    );
+    });
 
     return data;
-  }
-
-  async getArtist(artist_id) {
-    // Get artist data from Spotify
-    return await this.getArtistTracks(artist_id);
-    console.log(this.spotifyClient.endpoints);
-
-    const artistData = await this.spotifyClient.getArtist(artist_id);
-    // artistData.
-    return artistData;
   }
 
   async search(query, type = "track", limit = 20) {
@@ -220,8 +137,7 @@ class MusicFunctions {
     if (type == "*") {
       type = "artist,album,track";
     }
-    console.log(type);
-
+    
     const searchDatas = await this.spotifyClient.search({
       q: `${query}`,
       type: type,
@@ -246,7 +162,7 @@ class MusicFunctions {
     }
 
     if (searchDatas.albums?.items) {
-      searchDatas.albums.items = searchDatas.albums.items.map((item) => {
+      searchDatas.albums.items = searchDatas.albums.items.map( (item) => {
         return {
           name: item.name,
           id: item.id,

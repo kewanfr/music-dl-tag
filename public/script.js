@@ -9,6 +9,8 @@ var searchData = [];
 
 searchButton.onclick = search;
 
+const API_BASE = "";
+
 // on enter key press in search input
 searchInput.addEventListener("keyup", (e) => {
   if (e.key === "Enter") {
@@ -101,7 +103,7 @@ function refreshResults() {
 async function fetch_data(query, type = "track", limit = 40){
 
   const response = await fetch(
-    `http://192.168.0.50:5000/api/search/${query}?type=${type}&limit=${limit}`
+    `${API_BASE}/api/search/${query}?type=${type}&limit=${limit}`
   );
   return await response.json();
 }
@@ -163,7 +165,7 @@ async function search(){
 async function artistClick(artist_id) {
   // console.log("clicked on artist", artist_id);
 
-  const result = await fetch(`http://192.168.0.50:5000/api/artist/${artist_id}`);
+  const result = await fetch(`${API_BASE}/api/artist/${artist_id}`);
     const dt = await result.json();
 
     searchData = [];
@@ -184,7 +186,7 @@ async function trackDownloadClick(track_id) {
   // console.log(track);
   console.log(`Downloading ${track.name} - ${track.artist}...`);
 
-  const result = await fetch("http://192.168.0.50:5000/api/download", {
+  const result = await fetch(`${API_BASE}/api/download`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

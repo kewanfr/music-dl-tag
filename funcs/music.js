@@ -115,6 +115,8 @@ class MusicFunctions {
 
     const data = await response.json();
 
+    return data.tracks;
+
     data.tracks = data.tracks.map((item) => {
       let artist = item.artists.map((a) => a.name).join(" / ");
 
@@ -126,6 +128,44 @@ class MusicFunctions {
         id: item.id,
         uri: item.external_urls.spotify,
       };
+
+
+      // let artists = item.artists.map((a) => {
+      //   return {
+      //     name: a.name,
+      //     id: a.i,
+      //     uri: a.external_urls.spotify,
+      //   };
+      // });
+
+      // let album = {
+      //   id: item.album.id,
+      //   uri: item.album.external_urls.spotify,
+      //   name: item.album.name,
+      //   image: {
+      //     url: item.album.images[0].url,
+      //     height: item.album.images[0].height,
+      //     width: item.album.images[0].width,
+      //   },
+      //   release_date: item.album.release_date,
+      //   year: item.album.release_date.split("-")[0],
+      // };
+
+      // let artist = artists.map((a) => a.name).join(" / ");
+
+      // return {
+      //   name: item.name,
+      //   artist,
+      //   album_artist: artists[0].name,
+      //   cover: album.image.url,
+      //   id: item.id,
+      //   uri: item.external_urls.spotify,
+      //   artists,
+      //   duration_ms: item.duration_ms,
+      //   album,
+      //   preview_url: item.preview_url,
+      //   track_position: item.track_number,
+      // };
     });
 
     return data;
@@ -240,7 +280,10 @@ class MusicFunctions {
 
     if (fs.existsSync(path.join(this.FINAL_PATH, finalFileName))) {
       console.log(`File ${finalFileName} already exists`);
-      return finalFileName;
+      return {
+        message: "File already exists",
+        path: finalFileName,
+      };
     }
 
     await this.downloader.downloadTrack(track_data, tempFileName);
@@ -262,7 +305,9 @@ class MusicFunctions {
 
     console.log(`Sucessfully downloaded ${tempFileName}\n`);
 
-    return finalFileName;
+    return {
+      path: finalFileName,
+    };
   }
 }
 

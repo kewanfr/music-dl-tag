@@ -43,8 +43,6 @@ app.get("/api/search/:query", async (req, reply) => {
   let limit = req.query.limit || 20;
   let type = req.query.type || "*";
 
-  console.log(query, type, limit);
-
   let items = await musicController.search(query, type, limit);
 
   reply.code(200).send(items);
@@ -62,10 +60,7 @@ app.post("/api/search", async (req, reply) => {
   let data = req.body;
 
   let limit = req.query.limit || 20;
-  let type = req.query.type || "*";
-
-  console.log(data.query, type, limit);
-  
+  let type = req.query.type || "*";  
 
   let items = await musicController.search(data.query, type, limit);
 
@@ -73,21 +68,36 @@ app.post("/api/search", async (req, reply) => {
 });
 
 app.post("/api/download", async (req, reply) => {
-  let track_data = req.body;
+  let track_data = req.body;  
 
-  let songPath = await musicController.downloadFromDatas(track_data);
-  return reply.code(200).send(songPath);
+  // console.log(track_data);
+
+  let response = await musicController.downloadFromDatas(track_data);
+
+  if (response.message && response.message == "File already exists") {
+    return reply.code(200).send({
+      song: `${track_data.name} - ${track_data.artist}`,
+      downloaded: false,
+      message: response.message,
+      songPath: response.path,
+    });
+  }
+
+  return reply.code(200).send({
+    song: `${track_data.name} - ${track_data.artist}`,
+    downloaded: true,
+    songPath: response.path,
+  });
 });
 
 app.post("/api/searchDownload", async (req, reply) => {
   let items = await musicController.search(req.body.query);
 
-  let songPath = musicController.downloadFromDatas(items.tracks[0]);
-
+  let response = await musicController.downloadFromDatas(items.tracks[0]);
   reply.code(200).send({
     query: req.body.query || "No query",
-    status: "Downloaded",
-    songPath,
+    downloaded: true,
+    songPath: response.path,
   });
 });
 
@@ -95,13 +105,14 @@ app.get("/api/searchDownload/:query", async (req, reply) => {
   let { query } = req.params;
 
   let items = await musicController.search(query);
+  let response = await musicController.downloadFromDatas(items.tracks[0]);
 
   reply.code(200).send({
     query: query || "No query",
-    status: "downloading...",
+    downloaded: true,
+    songPath: response.path,
   });
 
-  let songPath = musicController.downloadFromDatas(items.tracks[0]);
 });
 
 app.get("/api/lyrics/:query", async (req, reply) => {
@@ -118,6 +129,7 @@ try {
   });
   console.log(`Server running at http://${config.HOST}:${config.PORT}/`);
 } catch (err) {
+  console.error(err);
   app.log.error(err);
   process.exit(1);
 }

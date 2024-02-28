@@ -125,7 +125,7 @@ class MusicFunctions {
         return {
           name: item.name,
           id: item.id,
-          gere: item.genres?.join(", "),
+          genre: item.genres?.join(", "),
           followers: item.followers.total,
           popularity: item.popularity,
           uri: item.external_urls.spotify,

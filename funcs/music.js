@@ -81,6 +81,8 @@ class MusicFunctions {
       `${name} - ${album_artist}.jpg`
     );
 
+    console.log("Tagging", mp3InputPath, "with", coverPath, "to", mp3OutputPath)
+
     const mp3Data = await readFileAsync(mp3InputPath);
     const imageData = await readFileAsync(coverPath);
     const tags = id3.read(mp3Data);

@@ -58,6 +58,9 @@ export default class MusicDownloader {
   metadata = async (track_data, filename) => {
     const outputOptions = ["-map", "0:0", "-codec", "copy"];
 
+
+    console.log(`Adding metadata to ${filename}`);
+    
     const metadata = {
       title: track_data.name,
       album: track_data.album.name,
@@ -93,9 +96,11 @@ export default class MusicDownloader {
   ) => {
     filename = `${this.TEMP_SONGS_PATH}/${filename}`;
 
+    console.log(`Downloading ${track_data.name} - ${track_data.artist}`);
+    
     const link = await this.getYtlink(
       `${track_data.name} ${track_data.artist}`
-    );
+      );
 
     if (!link)
       throw new Error(
@@ -103,7 +108,13 @@ export default class MusicDownloader {
       );
 
     const data = await this.downloadYT(link, filename);
-    await this.metadata(track_data, filename);
+
+    try {
+      await this.metadata(track_data, filename);
+    } catch (err) {
+      console.error(err);
+      throw new Error("Couldn't add metadata to the track" + err);
+    }
 
     return filename;
   };

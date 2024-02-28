@@ -87,5 +87,25 @@ export default class MusicDownloader {
     return filename;
   };
 
+  downloadTrack = async (
+    track_data,
+    filename = `${Math.random().toString(36).slice(-5)}.mp3`
+  ) => {
+    filename = `${this.TEMP_SONGS_PATH}/${filename}`;
+
+    const link = await this.getYtlink(
+      `${track_data.name} ${track_data.artist}`
+    );
+
+    if (!link)
+      throw new Error(
+        `Couldn't get a download URL for the track: ${track_data.name} - ${track_data.artist}`
+      );
+
+    const data = await this.downloadYT(link, filename);
+    await this.metadata(track_data, filename);
+
+    return filename;
+  };
 }
 

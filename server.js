@@ -5,6 +5,7 @@ import fastifyStatic from "@fastify/static";
 // Imports des fonctions de l'application
 import config from "./config.env.js";
 import MusicFunctions from "./funcs/music.js";
+import LyricsFunctions from "./funcs/lyrics.js";
 import path from "path";
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
@@ -12,6 +13,7 @@ const __dirname = path.dirname(__filename);
 
 
 const musicController = new MusicFunctions(config);
+const lyricsController = new LyricsFunctions(config);
 // Création de l'application
 const app = fastify();
 
@@ -34,7 +36,13 @@ app.addHook("onRequest", (request, reply, done) => {
 app.get("/api/search/:query", async (req, reply) => {
   let { query } = req.params;
 
-  let items = await musicController.search(query);
+  // query params
+  let limit = req.query.limit || 20;
+  let type = req.query.type || "*";
+
+  console.log(data.query, type, limit);
+
+  let items = await musicController.search(query, type, limit);
 
   reply.code(200).send(items);
 });
@@ -42,22 +50,28 @@ app.get("/api/search/:query", async (req, reply) => {
 app.post("/api/search", async (req, reply) => {
   let data = req.body;
 
-  let items = await musicController.search(data.query);
+  let limit = req.query.limit || 20;
+  let type = req.query.type || "*";
+
+  console.log(data.query, type, limit);
+  
+
+  let items = await musicController.search(data.query, type, limit);
 
   reply.code(200).send(items);
 });
 
 app.post("/api/download", async (req, reply) => {
-  let data = req.body;
+  let track_data = req.body;
 
-  let songPath = await musicController.downloadFromDatas(data);
+  let songPath = await musicController.downloadFromDatas(track_data);
   return reply.code(200).send(songPath);
 });
 
 app.post("/api/searchDownload", async (req, reply) => {
   let items = await musicController.search(req.body.query);
 
-  let songPath = musicController.downloadFromDatas(items[0]);
+  let songPath = musicController.downloadFromDatas(items.tracks[0]);
 
   reply.code(200).send({
     query: req.body.query || "No query",
@@ -76,14 +90,22 @@ app.get("/api/searchDownload/:query", async (req, reply) => {
     status: "downloading...",
   });
 
-  let songPath = musicController.downloadFromDatas(items[0]);
+  let songPath = musicController.downloadFromDatas(items.tracks[0]);
+});
+
+app.get("/api/lyrics/:query", async (req, reply) => {
+  let { query } = req.params;
+
+  let lyrics = await lyricsController.getLyrics(query);
+
+  reply.code(200).send(lyrics);
 });
 
 try {
-  await app.listen({ port: 3000,
-    host: "192.168.0.50"
+  await app.listen({ port: config.PORT,
+    host: config.HOST
   });
-  console.log("Server running at http://localhost:3000/");
+  console.log(`Server running at http://${config.HOST}:${config.PORT}/`);
 } catch (err) {
   app.log.error(err);
   process.exit(1);

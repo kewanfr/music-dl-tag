@@ -54,7 +54,7 @@ export default class MusicDownloader {
       throw new Error(err);
     }
   };
-
+  
   metadata = async (track_data, filename) => {
     const outputOptions = ["-map", "0:0", "-codec", "copy"];
 

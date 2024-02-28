@@ -6,6 +6,7 @@ import fastifyStatic from "@fastify/static";
 import config from "./config.env.js";
 import MusicFunctions from "./funcs/music.js";
 import LyricsFunctions from "./funcs/lyrics.js";
+import Database from "./funcs/database.js";
 import path from "path";
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,7 @@ const __dirname = path.dirname(__filename);
 
 const musicController = new MusicFunctions(config);
 const lyricsController = new LyricsFunctions(config);
+// const database = new Database(config);
 // Création de l'application
 const app = fastify();
 
@@ -21,6 +23,7 @@ app.register(fastifyStatic, {
     root: path.join(__dirname, 'public'),
     prefix: '/',
 });
+
 app.register(cors, {
   origin: "*",
 });
@@ -40,11 +43,19 @@ app.get("/api/search/:query", async (req, reply) => {
   let limit = req.query.limit || 20;
   let type = req.query.type || "*";
 
-  console.log(data.query, type, limit);
+  console.log(query, type, limit);
 
   let items = await musicController.search(query, type, limit);
 
   reply.code(200).send(items);
+});
+
+app.get("/api/artist/:id", async (req, reply) => {
+  let { id } = req.params;
+
+  let response = await musicController.getArtist(id);
+
+  reply.code(200).send(response);
 });
 
 app.post("/api/search", async (req, reply) => {
@@ -110,3 +121,9 @@ try {
   app.log.error(err);
   process.exit(1);
 }
+
+// let items = await musicController.search("orelsan", "track,artist", 20);
+// console.log(items);
+
+
+// console.log(database.getDatabasePath());

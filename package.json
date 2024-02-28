@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev:css": "tailwindcss -i tailwind.css -o ./public/css/style.css --watch"
+    "dev:css": "tailwindcss -i tailwind.css -o ./public/css/style.css --watch",
+    "start": "tailwindcss -i tailwind.css -o ./public/css/style.css && node .",
+    "dev": "tailwindcss -i tailwind.css -o ./public/css/style.css && nodemon ."
   },
   "author": "kewanb",
   "license": "MIT",

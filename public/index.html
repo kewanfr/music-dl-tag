@@ -66,22 +66,23 @@
     <header class="border-b border-b-accent fixed top-0 z-20 bg-background w-full">
       <div class="container flex items-center py-2 max-w-lg m-auto gap-1">
         <h2 class="text-2xl font-bold mr-auto">Music Downloader</h2>
+        
       </div>
     </header>
     <div class="flex-1 max-w-lg m-auto py-14 w-full">
-      <i class="arrow-icon"></i>
+      <!-- <i class="arrow-icon"></i>
       <i class="download-icon"></i>
       <button class="text-blue-500 border border-blue-500 px-2 py-1 rounded hover:bg-blue-500 hover:text-white">
         <i class="download-icon"></i>
 
-      </button>
+      </button> -->
       <div class="flex flex-col items-center space-y-4 mt-5">Télécharger</div>
       <div class="divide-y divide-muted">
         <div class="flex flex-col items-center space-y-4 mt-5">
 
           <div class="w-full max-w-xl flex border rounded overflow-hidden mb-2"><input
-              placeholder="Recherchez une musique..." class="p-2 flex-grow text-black" type="text" value=""><button
-              class="bg-blue-500 text-white p-2 rounded-r hover:bg-blue-400">
+              placeholder="Recherchez une musique..." class="p-2 flex-grow text-black" type="text" id="search-input"><button
+              class="bg-blue-500 text-white p-2 rounded-r hover:bg-blue-400" id="search-button">
               <i class="search icon"></i>
             </button>
             <div data-lastpass-icon-root=""
@@ -101,17 +102,22 @@
                 <i class="icon download"></i>
               </button>
             </div>
-            <div class="flex items-center space-x-2 border-b pb-2 pt-2 pointer"><img alt="Cover ronde de Orelsan"
+            <div class="flex items-center space-x-2 border-b pb-2 pt-2 pointer">
+              <img alt="Cover ronde de Orelsan"
                 loading="lazy" width="48" height="48" decoding="async" data-nimg="1" class="w-12 h-12 rounded-full"
                 src="https://i.scdn.co/image/ab6761610000e5eb32086a424e6f1e499e347cde" style="color: transparent;">
 
-              <div class="flex-grow row">
+              <div class="flex-grow">
                 <h3 class="font-semibold">Orelsan</h3>
               </div>
               <i class="icon chevron-right"></i>
             </div>
-
+            
           </div>
+          <div class="fixed inset-0 flex items-center justify-center" id="searching-spin">
+            <div class="animate-spin w-10 h-10 border-t-4 border-blue-500 border-solid rounded-full"></div>
+          </div>
+
         </div>
       </div>
 
@@ -135,7 +141,7 @@
           </svg></span> Ma Musique</a>
     </div>
   </div>
-
+<!-- 
   <h1>Music Downloader</h1>
   <form id="form">
     <div class="search-div">
@@ -159,11 +165,11 @@
             float: left !important;
           "></div>
     </div>
-  </form>
+  </form> -->
 
   <script src="script.js"></script>
 
-  <script>
+  <!-- <script>
     const form = document.getElementById("form");
     form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -181,7 +187,7 @@
           console.log(data);
         });
     });
-  </script>
+  </script> -->
 </body>
 
 </html>

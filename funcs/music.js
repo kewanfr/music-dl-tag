@@ -1,6 +1,6 @@
 import utils from "./utils.js"; // Import utils functions
 import SpotifyGet from "spotify-get";
-import { Spotify } from "spotifydl-core";
+import SpotifyWebApi from "spotify-web-api-node";
 
 import https from "https";
 import fs from "fs";
@@ -15,7 +15,7 @@ const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
 
 class MusicFunctions {
-   constructor(config) {
+  constructor(config) {
     this.spotifyClient = new SpotifyGet({
       consumer: {
         key: process.env.SPOTIFY_CLIENT_ID,
@@ -23,12 +23,10 @@ class MusicFunctions {
       },
     });
 
-    let credentials = {
-      clientId: config.SPOTIFY_CLIENT_ID,
-      clientSecret: config.SPOTIFY_CLIENT_SECRET,
-    };
-
-    this.spotifyFetch = new Spotify(credentials);
+    // this.spotifyClient = new SpotifyWebApi({
+    //   clientId: config.SPOTIFY_CLIENT_ID,
+    //   clientSecret: config.SPOTIFY_CLIENT_SECRET,
+    // });
 
     this.TEMP_SONGS_PATH = config.TEMP_SONGS_PATH;
     this.TEMP_COVERS_PATH = config.TEMP_COVERS_PATH;
@@ -103,14 +101,127 @@ class MusicFunctions {
     return mp3OutputPath;
   }
 
+  async parseSearchResult(item, type = "track") {
+    return new Promise((resolve, reject) => {
+    switch (type) {
+      case "track":
+        let artists = item.artists.map((a) => {
+          return {
+            name: a.name,
+            id: a.i,
+            uri: a.external_urls.spotify,
+          };
+        });
+
+        let album = {
+          id: item.album.id,
+          uri: item.album.external_urls.spotify,
+          name: item.album.name,
+          image: {
+            url: item.album.images[0].url,
+            height: item.album.images[0].height,
+            width: item.album.images[0].width,
+          },
+          release_date: item.album.release_date,
+          year: item.album.release_date.split("-")[0],
+        };
+
+        let artist = artists.map((a) => a.name).join(" / ");
+
+        resolve({
+          name: item.name,
+          artist,
+          album_artist: artists[0].name,
+          cover: album.image.url,
+          id: item.id,
+          uri: item.external_urls.spotify,
+          artists,
+          duration_ms: item.duration_ms,
+          album,
+          preview_url: item.preview_url,
+          track_position: item.track_number,
+        });
+
+      case "album":
+        resolve( {
+          name: item.name,
+          id: item.id,
+          uri: item.external_urls.spotify,
+          cover: item.images[0]?.url || null,
+          release_date: item.release_date,
+          year: item.release_date.split("-")[0],
+          total_tracks: item.total_tracks,
+          artists: item.artists.map((a) => a.name).join(" / "),
+          album_artist: item.artists[0].name,
+        });
+
+      case "artist":
+        resolve({
+          name: item.name,
+          id: item.id,
+          genre: item.genres?.join(", "),
+          followers: item.followers.total,
+          popularity: item.popularity,
+          uri: item.external_urls.spotify,
+          // images: item.images,
+          cover: item.images[0]?.url || null,
+        });
+
+      default:
+        resolve(item);
+    }
+  });
+  }
+
+  async getArtistTracks(artist_id) {
+    const token = await this.spotifyClient.getToken();
+    const API_URL = `https://api.spotify.com/v1/artists/${artist_id}/top-tracks?market=FR`;
+
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+
+    data.tracks = data.tracks.map((item) => {
+      let artist = item.artists.map((a) => a.name).join(" / ");
+
+      return {
+        name: item.name,
+        artist,
+        album_artist: item.artists[0].name,
+        cover: item.album.images[0].url,
+        id: item.id,
+        uri: item.external_urls.spotify,
+      };
+    }
+    );
+
+    return data;
+  }
+
+  async getArtist(artist_id) {
+    // Get artist data from Spotify
+    return await this.getArtistTracks(artist_id);
+    console.log(this.spotifyClient.endpoints);
+
+    const artistData = await this.spotifyClient.getArtist(artist_id);
+    // artistData.
+    return artistData;
+  }
+
   async search(query, type = "track", limit = 20) {
     type = type.replace(/ /g, "");
     // Search for a song on Spotify and return clean results
-    if (type == "*"){
-      type = "artist,album,track"
+    if (type == "*") {
+      type = "artist,album,track";
     }
     console.log(type);
-    
+
     const searchDatas = await this.spotifyClient.search({
       q: `${query}`,
       type: type,
@@ -119,9 +230,8 @@ class MusicFunctions {
 
     // return searchDatas;
 
-    if(searchDatas.artists?.items){
+    if (searchDatas.artists?.items) {
       searchDatas.artists.items = searchDatas.artists.items.map((item) => {
-  
         return {
           name: item.name,
           id: item.id,
@@ -132,89 +242,77 @@ class MusicFunctions {
           // images: item.images,
           cover: item.images[0]?.url || null,
         };
-  
       });
     }
 
     if (searchDatas.albums?.items) {
-
       searchDatas.albums.items = searchDatas.albums.items.map((item) => {
-          
-          return {
-            name: item.name,
-            id: item.id,
-            uri: item.external_urls.spotify,
-            cover: item.images[0]?.url || null,
-            release_date: item.release_date,
-            year: item.release_date.split("-")[0],
-            total_tracks: item.total_tracks,
-            artists: item.artists.map((a) => a.name).join(" / "),
-            album_artist: item.artists[0].name,
-          }
-    
-        });
-    }
-
-
-    if (searchDatas.tracks?.items) {
-    searchDatas.tracks.items = searchDatas.tracks.items.map((item) => {
-      let artists = item.artists.map((a) => {
         return {
-          name: a.name,
-          id: a.i,
-          uri: a.external_urls.spotify,
+          name: item.name,
+          id: item.id,
+          uri: item.external_urls.spotify,
+          cover: item.images[0]?.url || null,
+          release_date: item.release_date,
+          year: item.release_date.split("-")[0],
+          total_tracks: item.total_tracks,
+          artists: item.artists.map((a) => a.name).join(" / "),
+          album_artist: item.artists[0].name,
         };
       });
+    }
 
-      let album = {
-        id: item.album.id,
-        uri: item.album.external_urls.spotify,
-        name: item.album.name,
-        image: {
-          url: item.album.images[0].url,
-          height: item.album.images[0].height,
-          width: item.album.images[0].width,
-        },
-        release_date: item.album.release_date,
-        year: item.album.release_date.split("-")[0],
-      };
+    if (searchDatas.tracks?.items) {
+      searchDatas.tracks.items = searchDatas.tracks.items.map((item) => {
+        let artists = item.artists.map((a) => {
+          return {
+            name: a.name,
+            id: a.i,
+            uri: a.external_urls.spotify,
+          };
+        });
 
-      let artist = artists.map((a) => a.name).join(" / ");
+        let album = {
+          id: item.album.id,
+          uri: item.album.external_urls.spotify,
+          name: item.album.name,
+          image: {
+            url: item.album.images[0].url,
+            height: item.album.images[0].height,
+            width: item.album.images[0].width,
+          },
+          release_date: item.album.release_date,
+          year: item.album.release_date.split("-")[0],
+        };
 
-      return {
-        name: item.name,
-        artist,
-        album_artist: artists[0].name,
-        cover: album.image.url,
-        id: item.id,
-        type: item.type,
-        uri: item.external_urls.spotify,
-        artists,
-        duration_ms: item.duration_ms,
-        album,
-        preview_url: item.preview_url,
-        track_position: item.track_number,
-      };
-    });
-  }
+        let artist = artists.map((a) => a.name).join(" / ");
+
+        return {
+          name: item.name,
+          artist,
+          album_artist: artists[0].name,
+          cover: album.image.url,
+          id: item.id,
+          uri: item.external_urls.spotify,
+          artists,
+          duration_ms: item.duration_ms,
+          album,
+          preview_url: item.preview_url,
+          track_position: item.track_number,
+        };
+      });
+    }
 
     // return searchDatas;
     return {
       artists: searchDatas.artists?.items,
       albums: searchDatas.albums?.items,
       tracks: searchDatas.tracks?.items,
-    }
-
+    };
   }
 
-  async downloadFromDatas(track_data) {    
+  async downloadFromDatas(track_data) {
     // Download a song from Spotify using the data object returned by the search function
-    let {
-      name,
-      album_artist,
-      album,
-      track_position,
-    } = track_data;
+    let { name, album_artist, album, track_position } = track_data;
 
     let folderName = `${album_artist}\\${album.name}`;
     let tempFileName = `${name} - ${album_artist}.mp3`;
@@ -230,9 +328,9 @@ class MusicFunctions {
     }
 
     await this.downloader.downloadTrack(track_data, tempFileName);
-    
+
     await utils.ensureDir(path.join(this.FINAL_PATH, folderName));
-    
+
     await this.downloadCoverTrack(track_data);
     await this.tagCoverTrack(track_data);
 
@@ -243,10 +341,7 @@ class MusicFunctions {
 
     fs.unlinkSync(path.join(this.TEMP_SONGS_PATH, tempFileName));
     fs.unlinkSync(
-      path.join(
-        this.TEMP_COVERS_PATH,
-        tempFileName.replace("mp3", "jpg")
-      )
+      path.join(this.TEMP_COVERS_PATH, tempFileName.replace("mp3", "jpg"))
     );
 
     console.log(`Sucessfully downloaded ${tempFileName}\n`);

@@ -51,6 +51,8 @@ class MusicFunctions {
   async downloadCoverTrack(track_data) {
     let { cover, name, album_artist } = track_data;
     let fileName = `${name} - ${album_artist}.jpg`;
+
+    console.log(`Downloading cover for ${name} - ${album_artist}`);
     return new Promise((resolve, reject) => {
       https.get(cover, (response) => {
         response
@@ -287,9 +289,9 @@ class MusicFunctions {
         path: finalFileName,
       };
     }
-
+    
     await this.downloader.downloadTrack(track_data, tempFileName);
-
+    
     await utils.ensureDir(path.join(this.FINAL_PATH, folderName));
 
     await this.downloadCoverTrack(track_data);

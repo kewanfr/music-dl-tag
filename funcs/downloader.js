@@ -51,6 +51,7 @@ export default class MusicDownloader {
           });
       });
     } catch (err) {
+      console.error(err);
       throw new Error(err);
     }
   };
@@ -87,6 +88,9 @@ export default class MusicDownloader {
     });
     fs.unlinkSync(filename);
     fs.renameSync(out, filename);
+
+    console.log('Metadata added to the track!');
+    
     return filename;
   };
 

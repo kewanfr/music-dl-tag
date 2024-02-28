@@ -50,10 +50,10 @@ app.get("/api/search/:query", async (req, reply) => {
   reply.code(200).send(items);
 });
 
-app.get("/api/artist/:id", async (req, reply) => {
-  let { id } = req.params;
+app.get("/api/artist/:artist_id", async (req, reply) => {
+  let { artist_id } = req.params;
 
-  let response = await musicController.getArtist(id);
+  let response = await musicController.getArtistTracks(artist_id);
 
   reply.code(200).send(response);
 });

@@ -9,12 +9,13 @@ import id3 from "node-id3";
 import path from "path";
 
 import LyricsFunctions from "./lyrics.js";
+import MusicDownloader from "./downloader.js";
 
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
 
 class MusicFunctions {
-  constructor(config) {
+   constructor(config) {
     this.spotifyClient = new SpotifyGet({
       consumer: {
         key: process.env.SPOTIFY_CLIENT_ID,
@@ -46,34 +47,41 @@ class MusicFunctions {
     }
 
     this.lyricsController = new LyricsFunctions(config);
+    this.downloader = new MusicDownloader(config);
   }
 
-  async downloadCoverFromUrl(url, fileName) {
-    // From an URL, download the cover and save it to the temp covers folder named after the fileName (without extension)
+  async downloadCoverTrack(track_data) {
+    let { cover, name, album_artist } = track_data;
+    let fileName = `${name} - ${album_artist}.jpg`;
     return new Promise((resolve, reject) => {
-      https.get(url, (response) => {
+      https.get(cover, (response) => {
         response
           .pipe(
-            fs.createWriteStream(
-              path.join(this.TEMP_COVERS_PATH, fileName + ".jpg")
-            )
+            fs.createWriteStream(path.join(this.TEMP_COVERS_PATH, fileName))
           )
           .on("close", () => {
-            console.log(`Downloaded cover for ${fileName} from ${url}`);
-            resolve();
+            resolve(fileName);
           });
       });
     });
   }
 
-  async tagImageToMP3(tempFileRoot, finalPath) {
-    // Tag the MP3 file with the cover according to the mp3Filename and the cover filename (without extensions)
+  async tagCoverTrack(track_data) {
+    let { name, album_artist, album, track_position } = track_data;
     const mp3InputPath = path.join(
       this.TEMP_SONGS_PATH,
-      tempFileRoot + "_.mp3"
+      `${name} - ${album_artist}.mp3`
     );
-    const mp3OutputPath = path.join(this.FINAL_PATH, finalPath + ".mp3");
-    const coverPath = path.join(this.TEMP_COVERS_PATH, tempFileRoot + ".jpg");
+
+    const mp3OutputPath = path.join(
+      this.FINAL_PATH,
+      `${album_artist}\\${album.name}\\${track_position}- ${name}.mp3`
+    );
+
+    const coverPath = path.join(
+      this.TEMP_COVERS_PATH,
+      `${name} - ${album_artist}.jpg`
+    );
 
     const mp3Data = await readFileAsync(mp3InputPath);
     const imageData = await readFileAsync(coverPath);
@@ -92,23 +100,67 @@ class MusicFunctions {
     const taggedMp3Data = id3.write(tags, mp3Data);
     await writeFileAsync(mp3OutputPath, taggedMp3Data);
 
-    console.log(`Tagged MP3 ${tempFileRoot} with cover`);
+    return mp3OutputPath;
   }
 
-  async search(query) {
+  async search(query, type = "track", limit = 20) {
+    type = type.replace(/ /g, "");
     // Search for a song on Spotify and return clean results
+    if (type == "*"){
+      type = "artist,album,track"
+    }
+    console.log(type);
+    
     const searchDatas = await this.spotifyClient.search({
       q: `${query}`,
-      type: "track",
-      limit: 20,
+      type: type,
+      limit: limit,
     });
 
     // return searchDatas;
 
-    let items = searchDatas.tracks.items.map((item) => {
+    if(searchDatas.artists?.items){
+      searchDatas.artists.items = searchDatas.artists.items.map((item) => {
+  
+        return {
+          name: item.name,
+          id: item.id,
+          gere: item.genres?.join(", "),
+          followers: item.followers.total,
+          popularity: item.popularity,
+          uri: item.external_urls.spotify,
+          // images: item.images,
+          cover: item.images[0]?.url || null,
+        };
+  
+      });
+    }
+
+    if (searchDatas.albums?.items) {
+
+      searchDatas.albums.items = searchDatas.albums.items.map((item) => {
+          
+          return {
+            name: item.name,
+            id: item.id,
+            uri: item.external_urls.spotify,
+            cover: item.images[0]?.url || null,
+            release_date: item.release_date,
+            year: item.release_date.split("-")[0],
+            total_tracks: item.total_tracks,
+            artists: item.artists.map((a) => a.name).join(" / "),
+            album_artist: item.artists[0].name,
+          }
+    
+        });
+    }
+
+
+    if (searchDatas.tracks?.items) {
+    searchDatas.tracks.items = searchDatas.tracks.items.map((item) => {
       let artists = item.artists.map((a) => {
         return {
-          name: utils.cleanAuthorName(a.name),
+          name: a.name,
           id: a.i,
           uri: a.external_urls.spotify,
         };
@@ -123,12 +175,14 @@ class MusicFunctions {
           height: item.album.images[0].height,
           width: item.album.images[0].width,
         },
+        release_date: item.album.release_date,
+        year: item.album.release_date.split("-")[0],
       };
 
       let artist = artists.map((a) => a.name).join(" / ");
 
       return {
-        name: utils.cleanSongName(item.name),
+        name: item.name,
         artist,
         album_artist: artists[0].name,
         cover: album.image.url,
@@ -138,90 +192,66 @@ class MusicFunctions {
         artists,
         duration_ms: item.duration_ms,
         album,
-        album_name: album.name,
         preview_url: item.preview_url,
         track_position: item.track_number,
       };
     });
-    return items;
   }
 
-  async downloadMP3FromSpotifyUrl(url, fileName) {
-    // Download raw MP3 file from Spotify
-    const songBuffer = await this.spotifyFetch.downloadTrack(url);
+    // return searchDatas;
+    return {
+      artists: searchDatas.artists?.items,
+      albums: searchDatas.albums?.items,
+      tracks: searchDatas.tracks?.items,
+    }
 
-    const song_temp_path = path.join(this.TEMP_SONGS_PATH, fileName + "_.mp3");
-
-    await fs.writeFileSync(song_temp_path, songBuffer);
-
-    console.log(`Downloaded MP3 ${fileName} from Spotify`);
-
-    return songBuffer;
   }
 
-  async downloadMP3(track_data, filename) {
-    const songBuffer = await this.spotifyFetch.downloadTrack(track_data.uri);
-
-    const song_temp_path = path.join(this.TEMP_SONGS_PATH, fileName + "_.mp3");
-
-    await fs.writeFileSync(song_temp_path, songBuffer);
-
-    console.log(`Downloaded MP3 ${fileName} from Spotify`);
-
-    return songBuffer;
-  }
-  async downloadFromDatas(data) {
-
+  async downloadFromDatas(track_data) {    
     // Download a song from Spotify using the data object returned by the search function
     let {
       name,
-      artist,
       album_artist,
-      id,
-      uri,
-      cover,
       album,
-      duration_ms,
       track_position,
-    } = data;
+    } = track_data;
 
     let folderName = `${album_artist}\\${album.name}`;
-    let tempFileName = `${name} - ${album_artist}`;
-    // let finalPath = path.join(folderName, `${name}`);
-    let finalFileName = path.join(folderName, `${track_position}- ${name}`);
+    let tempFileName = `${name} - ${album_artist}.mp3`;
+    let finalFileName = path.join(folderName, `${track_position}- ${name}.mp3`);
 
-    console.log("folderName", finalFileName);
-    console.log("tempFileName", tempFileName);
-    console.log("finalFileName", finalFileName);
     console.log(
       `\nTrying to download ${name} - ${album_artist} - ${album.name}`
     );
 
-    if (fs.existsSync(path.join(this.FINAL_PATH, finalFileName + ".mp3"))) {
+    if (fs.existsSync(path.join(this.FINAL_PATH, finalFileName))) {
       console.log(`File ${finalFileName} already exists`);
-      return finalFileName + ".mp3";
+      return finalFileName;
     }
 
-    await this.downloadMP3FromSpotifyUrl(uri, tempFileName);
-
-    await this.downloadCoverFromUrl(cover, tempFileName);
-
+    await this.downloader.downloadTrack(track_data, tempFileName);
+    
     await utils.ensureDir(path.join(this.FINAL_PATH, folderName));
-
-    await this.tagImageToMP3(tempFileName, finalFileName);
+    
+    await this.downloadCoverTrack(track_data);
+    await this.tagCoverTrack(track_data);
 
     await this.lyricsController.getAndSaveTxtLyrics(
       `${name} ${album_artist}`,
-      path.join(this.FINAL_PATH, finalFileName + ".txt")
+      path.join(this.FINAL_PATH, finalFileName.replace("mp3", "txt"))
     );
 
-    fs.unlinkSync(path.join(this.TEMP_SONGS_PATH, tempFileName + "_.mp3"));
-    fs.unlinkSync(path.join(this.TEMP_COVERS_PATH, tempFileName + ".jpg"));
-    console.log(`Deleted temp files : ${tempFileName}`);
+    fs.unlinkSync(path.join(this.TEMP_SONGS_PATH, tempFileName));
+    fs.unlinkSync(
+      path.join(
+        this.TEMP_COVERS_PATH,
+        tempFileName.replace("mp3", "jpg")
+      )
+    );
 
     console.log(`Sucessfully downloaded ${tempFileName}\n`);
 
-    return finalFileName + ".mp3";
+    return finalFileName;
   }
 }
 

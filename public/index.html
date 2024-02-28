@@ -54,6 +54,7 @@
   </style>
 
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/icons.css" />
 </head>
 
 <body>
@@ -68,8 +69,51 @@
       </div>
     </header>
     <div class="flex-1 max-w-lg m-auto py-14 w-full">
-      <div class="flex flex-col items-center space-y-4 mt-5">children</div>
-      {children}
+      <i class="arrow-icon"></i>
+      <i class="download-icon"></i>
+      <button class="text-blue-500 border border-blue-500 px-2 py-1 rounded hover:bg-blue-500 hover:text-white">
+        <i class="download-icon"></i>
+
+      </button>
+      <div class="flex flex-col items-center space-y-4 mt-5">Télécharger</div>
+      <div class="divide-y divide-muted">
+        <div class="flex flex-col items-center space-y-4 mt-5">
+
+          <div class="w-full max-w-xl flex border rounded overflow-hidden mb-2"><input
+              placeholder="Recherchez une musique..." class="p-2 flex-grow text-black" type="text" value=""><button
+              class="bg-blue-500 text-white p-2 rounded-r hover:bg-blue-400">
+              <i class="search icon"></i>
+            </button>
+            <div data-lastpass-icon-root=""
+              style="position: relative !important; height: 0px !important; width: 0px !important; float: left !important;">
+            </div>
+          </div>
+          <div class="w-full max-w-xl space-y-2 mt-4" id="results-list">
+
+            <div class="flex items-center space-x-2 border-b pb-2 pt-2"><img alt="Cover de Basique" loading="lazy"
+                width="48" height="48" decoding="async" data-nimg="1" class="w-12 h-12 rounded-md"
+                src="https://i.scdn.co/image/ab67616d0000b27358ba1ea637001f9a15e55a92" style="color: transparent;">
+              <div class="flex-grow">
+                <h3 class="font-semibold">La Quête</h3>
+                <p class="text-gray-400">Orelsan</p>
+              </div>
+              <button class="text-blue-500 border border-blue-500 px-2 py-1 rounded hover:bg-blue-500 hover:text-white">
+                <i class="icon download"></i>
+              </button>
+            </div>
+            <div class="flex items-center space-x-2 border-b pb-2 pt-2 pointer"><img alt="Cover ronde de Orelsan"
+                loading="lazy" width="48" height="48" decoding="async" data-nimg="1" class="w-12 h-12 rounded-full"
+                src="https://i.scdn.co/image/ab6761610000e5eb32086a424e6f1e499e347cde" style="color: transparent;">
+
+              <div class="flex-grow row">
+                <h3 class="font-semibold">Orelsan</h3>
+              </div>
+              <i class="icon chevron-right"></i>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
 
     </div>
@@ -117,6 +161,8 @@
     </div>
   </form>
 
+  <script src="script.js"></script>
+
   <script>
     const form = document.getElementById("form");
     form.addEventListener("submit", (e) => {
@@ -129,7 +175,7 @@
     downloadBtn.addEventListener("click", () => {
       const query = search.value;
 
-      fetch(`/api/searchDownload/${query}`)
+      fetch(`/api/search/${query}?type=track, artist &limit=20`)
         .then((response) => response.json())
         .then((data) => {
           console.log(data);

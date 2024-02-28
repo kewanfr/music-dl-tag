@@ -1,37 +1,5 @@
 import fs from 'fs';
 
-const cleanAuthorName = (name) => {
-  return name
-    .replaceAll(/ *\([^)]*\) */g, "")
-    .replaceAll(" - Topic", "")
-    .replaceAll("é", "e")
-    .replaceAll("/", "")
-    .replaceAll("?", "")
-    .replaceAll(":", "")
-    .replaceAll(".", "");
-};
-
-const cleanSongName = (name) => {
-  return name
-    .replaceAll(/ *\([^)]*\) */g, "")
-    .replaceAll(" - Topic", "")
-    .replaceAll("é", "e")
-    .replaceAll("/", "")
-    .replaceAll("?", "")
-    .replaceAll(":", "")
-    .replaceAll(".", "")
-    .replace("*", "");
-};
-
-const fetchUtils = (args) => {
-  return new Promise((resolve, reject) => {
-    fetch(args, (err, res) => {
-      if (err) reject(err);
-      resolve(res);
-    });
-  });
-}
-
 
 const fetchJSON = async (args) => {
 
@@ -70,8 +38,6 @@ const ensureDir = async (dir) => {
 const cleanLineBreaks = (str) => str.replace(/^\s+|\s+$/g, "");
 
 export default {
-  cleanAuthorName,
-  cleanSongName,
   fetchJSON,
   fetchPage,
   ensureDir,

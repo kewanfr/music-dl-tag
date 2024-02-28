@@ -1,2 +1,8 @@
-temp/
 node_modules/
+temp/
+store/
+db/
+ignore/
+
+.env
+package-lock.json

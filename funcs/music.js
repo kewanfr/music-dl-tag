@@ -119,7 +119,7 @@ class MusicFunctions {
 
     const data = await response.json();
 
-    return data.tracks;
+    // return data.tracks;
 
     data.tracks = data.tracks.map((item) => {
       let artist = item.artists.map((a) => a.name).join(" / ");
@@ -129,8 +129,29 @@ class MusicFunctions {
         artist,
         album_artist: item.artists[0].name,
         cover: item.album.images[0].url,
+        
         id: item.id,
         uri: item.external_urls.spotify,
+        track_position: item.track_number,
+        artists: item.artists.map((a) => {
+          return {
+            name: a.name,
+            id: a.i,
+            uri: a.external_urls.spotify,
+          };
+        }),
+        album: {
+          id: item.album.id,
+          uri: item.album.external_urls.spotify,
+          name: item.album.name,
+          image: {
+            url: item.album.images[0].url,
+            height: item.album.images[0].height,
+            width: item.album.images[0].width,
+          },
+          release_date: item.album.release_date,
+          year: item.album.release_date.split("-")[0],
+        }
       };
 
 

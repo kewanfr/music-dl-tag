@@ -125,9 +125,9 @@ class MusicFunctions {
       let artist = item.artists.map((a) => a.name).join(" / ");
 
       return {
-        name: item.name,
-        artist,
-        album_artist: item.artists[0].name,
+        name: utils.cleanName(item.name),
+        artist: utils.cleanName(artist),
+        album_artist: utils.cleanName(item.artists[0].name),
         cover: item.album.images[0].url,
         
         id: item.id,
@@ -143,7 +143,7 @@ class MusicFunctions {
         album: {
           id: item.album.id,
           uri: item.album.external_urls.spotify,
-          name: item.album.name,
+          name: utils.cleanName(item.album.name),
           image: {
             url: item.album.images[0].url,
             height: item.album.images[0].height,
@@ -214,7 +214,7 @@ class MusicFunctions {
     if (searchDatas.artists?.items) {
       searchDatas.artists.items = searchDatas.artists.items.map((item) => {
         return {
-          name: item.name,
+          name: utils.cleanName(item.name),
           id: item.id,
           genre: item.genres?.join(", "),
           followers: item.followers.total,
@@ -229,7 +229,7 @@ class MusicFunctions {
     if (searchDatas.albums?.items) {
       searchDatas.albums.items = searchDatas.albums.items.map( (item) => {
         return {
-          name: item.name,
+          name: utils.cleanName(item.name),
           id: item.id,
           uri: item.external_urls.spotify,
           cover: item.images[0]?.url || null,
@@ -246,7 +246,7 @@ class MusicFunctions {
       searchDatas.tracks.items = searchDatas.tracks.items.map((item) => {
         let artists = item.artists.map((a) => {
           return {
-            name: a.name,
+            name: utils.cleanName(a.name),
             id: a.i,
             uri: a.external_urls.spotify,
           };
@@ -255,7 +255,7 @@ class MusicFunctions {
         let album = {
           id: item.album.id,
           uri: item.album.external_urls.spotify,
-          name: item.album.name,
+          name: utils.cleanName(item.album.name),
           image: {
             url: item.album.images[0].url,
             height: item.album.images[0].height,
@@ -268,9 +268,9 @@ class MusicFunctions {
         let artist = artists.map((a) => a.name).join(" / ");
 
         return {
-          name: item.name,
-          artist,
-          album_artist: artists[0].name,
+          name: utils.cleanName(item.name),
+          artist: utils.cleanName(artist),
+          album_artist: utils.cleanName(artists[0].name),
           cover: album.image.url,
           id: item.id,
           uri: item.external_urls.spotify,

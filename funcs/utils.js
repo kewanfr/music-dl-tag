@@ -1,5 +1,9 @@
 import fs from 'fs';
 
+const cleanSongName = (str) => str.replace(":", "-");
+const cleanAlbumName = (str) => str.replace(":", "-");
+const cleanArtistName = (str) => str.replace(":", "-");
+const cleanName = (str) => str.replace(":", "-");
 
 const fetchJSON = async (args) => {
 
@@ -42,4 +46,9 @@ export default {
   fetchPage,
   ensureDir,
   cleanLineBreaks,
+
+  cleanSongName,
+  cleanAlbumName,
+  cleanArtistName,
+  cleanName,
 };

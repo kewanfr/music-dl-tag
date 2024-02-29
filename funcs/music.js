@@ -75,7 +75,7 @@ class MusicFunctions {
 
     const mp3OutputPath = path.join(
       this.FINAL_PATH,
-      `${album_artist}\\${album.name}\\${track_position}- ${name}.mp3`
+      `${album_artist}/${album.name}/${track_position}- ${name}.mp3`
     );
 
     const coverPath = path.join(
@@ -274,7 +274,7 @@ class MusicFunctions {
     // Download a song from Spotify using the data object returned by the search function
     let { name, album_artist, album, track_position } = track_data;
 
-    let folderName = `${album_artist}\\${album.name}`;
+    let folderName = `${album_artist}/${album.name}`;
     let tempFileName = `${name} - ${album_artist}.mp3`;
     let finalFileName = path.join(folderName, `${track_position}- ${name}.mp3`);
 

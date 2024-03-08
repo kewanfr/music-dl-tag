@@ -5,7 +5,8 @@ import fastifyStatic from "@fastify/static";
 // Imports des fonctions de l'application
 import config from "./config.env.js";
 import MusicFunctions from "./funcs/music.js";
-import LyricsFunctions from "./funcs/lyrics.js";
+// import LyricsFunctions from "./funcs/lyrics.js";
+import LyricsFunctions from "./funcs/lyricsGenius.js";
 import PlexFunctions from "./funcs/plex.js";
 import Database from "./funcs/database.js";
 import path from "path";
@@ -73,7 +74,6 @@ app.post("/api/search", async (req, reply) => {
 app.post("/api/download", async (req, reply) => {
   let track_data = req.body;  
 
-  // console.log(track_data);
 
   let response = await musicController.downloadFromDatas(track_data);
 
@@ -150,9 +150,3 @@ try {
   app.log.error(err);
   process.exit(1);
 }
-
-// let items = await musicController.search("orelsan", "track,artist", 20);
-// console.log(items);
-
-
-// console.log(database.getDatabasePath());

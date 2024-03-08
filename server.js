@@ -6,6 +6,7 @@ import fastifyStatic from "@fastify/static";
 import config from "./config.env.js";
 import MusicFunctions from "./funcs/music.js";
 import LyricsFunctions from "./funcs/lyrics.js";
+import PlexFunctions from "./funcs/plex.js";
 import Database from "./funcs/database.js";
 import path from "path";
 import { fileURLToPath } from 'url';
@@ -15,6 +16,8 @@ const __dirname = path.dirname(__filename);
 
 const musicController = new MusicFunctions(config);
 const lyricsController = new LyricsFunctions(config);
+const plexController = new PlexFunctions(config);
+
 // const database = new Database(config);
 // Création de l'application
 const app = fastify();
@@ -122,6 +125,20 @@ app.get("/api/lyrics/:query", async (req, reply) => {
 
   reply.code(200).send(lyrics);
 });
+
+app.get("/api/playing/lyrics", async (req, reply) => {
+  let lyrics = await plexController.getActualPlayingLyrics();
+
+  reply.code(200).send(lyrics);
+})
+
+app.get("/api/playing", async (req, reply) => {
+  let playing = await plexController.getActualPlaying();
+
+  reply.code(200).send(playing);
+});
+
+
 
 try {
   await app.listen({ port: config.PORT,

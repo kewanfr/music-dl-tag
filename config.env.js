@@ -15,4 +15,10 @@ export default {
 
     DB_NAME: process.env.DB_NAME || "music.db",
     DB_FOLDER: process.env.DB_FOLDER || "./db",
+
+    DEVICE_NAME: process.env.DEVICE_NAME || "RPI",
+
+    PLEX_URL: process.env.PLEX_URL,
+    PLEX_USERNAME: process.env.PLEX_USERNAME,
+    PLEX_PASSWORD: process.env.PLEX_PASSWORD,
 };

@@ -1,5 +1,5 @@
 import PlexAPI from "plex-api";
-
+import fs from "fs";
 const LYBRARY_SECTION_TITLE = "Musique";
 
 class plexFunctions {
@@ -32,6 +32,10 @@ class plexFunctions {
       return null;
     }
 
+    // fs.writeFileSync("sessions.json", JSON.stringify(sessions, null, 2));
+
+    const thumbUrl = this.plexClient._generateRelativeUrl(session.thumb);
+    const plexToken = this.plexClient.authToken;
     let playing = {
       id: session.ratingKey,
       key: session.key,
@@ -41,6 +45,7 @@ class plexFunctions {
       artist: session.grandparentTitle,
       album: session.parentTitle,
       mediaPath: session.Media[0].Part[0].file,
+      thumb: thumbUrl + "?X-Plex-Token=" + plexToken,
       player: {
         title: session.Player.title,
         address: session.Player.address,
@@ -66,8 +71,6 @@ class plexFunctions {
   }
 
   async getMetadataFromID(id) {
-    console.log("id", id);
-
     let metadata = await this.plexClient.query(`/library/metadata/${id}`);
 
     const streams =
@@ -104,7 +107,10 @@ class plexFunctions {
       return null;
     }
 
-    return await this.getLyricsFromSongID(playing.id);
+    return {
+      playing: playing,
+      lyrics: await this.getLyricsFromSongID(playing.id),
+    }
   }
 }
 

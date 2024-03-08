@@ -23,7 +23,7 @@ const fetchPage = async (args) => {
     const message = `An error has occured: ${response.status}`;
     throw new Error(message);
   }
-
+  // return response;
   // response.
   const text = await response.text();
   return text;

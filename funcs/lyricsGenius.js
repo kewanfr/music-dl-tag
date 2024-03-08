@@ -11,9 +11,7 @@ class LyricsGeniusFunctions {
   async search(query) {
     let url = `${this.QUERY_URL}${query}`;
     let response = await utils.fetchJSON(url);
-
-    console.log("response", response);
-
+    
     if (response.error) {
       return response.error;
     }

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import packageJson from '../package.json' assert { type: "json" };
 
 const cleanName = (str) => str.replace(":", "-");
 
@@ -38,11 +39,15 @@ const ensureDir = async (dir) => {
 
 const cleanLineBreaks = (str) => str.replace(/^\s+|\s+$/g, "");
 
+const getProjectVersion = () => {
+  return packageJson.version;
+};
+
 export default {
   fetchJSON,
   fetchPage,
   ensureDir,
   cleanLineBreaks,
-
+  getProjectVersion,
   cleanName,
 };

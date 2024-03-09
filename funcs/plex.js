@@ -34,12 +34,8 @@ class plexFunctions {
 
     this.plexClient.query("/").then((result) => {
       // save clientIdentifier in store
-      console.log('result', result);
       
       this.clientIdentifier = result.MediaContainer.machineIdentifier;
-
-      console.log('clientIdentifier', this.clientIdentifier);
-      
 
       this.saveIdentifierToStore(this.clientIdentifier);
     });

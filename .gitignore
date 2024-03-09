@@ -6,3 +6,5 @@ ignore/
 
 .env
 package-lock.json
+
+songs/

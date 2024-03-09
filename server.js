@@ -4,6 +4,7 @@ import fastifyStatic from "@fastify/static";
 
 // Imports des fonctions de l'application
 import config from "./config.env.js";
+import utils from "./funcs/utils.js";
 import MusicFunctions from "./funcs/music.js";
 // import LyricsFunctions from "./funcs/lyrics.js";
 import LyricsFunctions from "./funcs/lyricsGenius.js";
@@ -19,7 +20,7 @@ const musicController = new MusicFunctions(config);
 const lyricsController = new LyricsFunctions(config);
 const plexController = new PlexFunctions(config);
 
-// const database = new Database(config);
+const database = new Database(config);
 // Création de l'application
 const app = fastify();
 
@@ -38,6 +39,13 @@ app.addHook("onRequest", (request, reply, done) => {
     `[${request.method}] ${request.url} ${request.ip} ${request.body}`
   );
   done();
+});
+
+app.get("/api/info", async (req, reply) => {
+  reply.code(200).send({
+    version: utils.getProjectVersion(),
+    deviceName: config.DEVICE_NAME,
+  });
 });
 
 app.get("/api/search/:query", async (req, reply) => {
@@ -136,6 +144,13 @@ app.get("/api/playing", async (req, reply) => {
   let playing = await plexController.getActualPlaying();
 
   reply.code(200).send(playing);
+});
+
+
+app.get("/api/queue", async (req, reply) => {
+  let queue = await database.getQueue();
+
+  reply.code(200).send(queue);
 });
 
 

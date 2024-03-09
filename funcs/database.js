@@ -272,12 +272,16 @@ export default class Database {
     });
   }
 
-  async getLastPendingQueueElement() {
+  async getNextQueueElement() {
     return new Promise((resolve, reject) => {
-      this.db.get(`SELECT * FROM download_queue ORDER BY ROWID DESC LIMIT 1 WHERE status = 0`, [], (err, row) => {
-        if (err) reject(err);
-        resolve(row);
-      });
+      this.db.get(
+        `SELECT * FROM download_queue WHERE status = 0 LIMIT 1`,
+        [],
+        (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        }
+      );
     });
   }
 
@@ -294,7 +298,7 @@ export default class Database {
     });
   }
 
-  async deleteQueueElement(id) {
+  async removeQueueItem(id) {
     return new Promise((resolve, reject) => {
       this.db.run(`DELETE FROM download_queue WHERE id = ?`, [id], (err) => {
         if (err) reject(err);

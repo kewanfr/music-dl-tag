@@ -18,6 +18,20 @@ searchInput.addEventListener("keyup", (e) => {
   }
 });
 
+searchInput.addEventListener("input", (e) => {
+  
+    window.history.pushState({}, null, `?q=${searchInput.value}`);
+});
+
+// get the query from the url
+const urlParams = new URLSearchParams(window.location.search);
+const query = urlParams.get("q");
+
+if (query) {
+  searchInput.value = query;
+  search();
+}
+
 
 function hideSearching() {
   searching.style.display = "none";
@@ -42,18 +56,6 @@ function addSearchResult(type = "track", searchData) {
 
 
   searchResult.innerHTML += `<img src="${searchData.cover}" alt="${searchData.name}" width="48" height="48" class="w-12 h-12 ${type == "artist" ? "rounded-full" : "rounded-md"}" loading="lazy" decoding="async">`;
-  // const img = document.createElement("img");
-  // img.src = searchData.cover;
-  // img.alt = searchData.name;
-  // img.width = 48;
-  // img.height = 48;
-
-  // roundedClass = type == "artist" ? "rounded-full" : "rounded-md";
-  // img.classList.add("w-12", "h-12", roundedClass);
-  // img.loading = "lazy";
-  // img.decoding = "async";
-
-  // searchResult.appendChild(img);
 
   if (type == "artist") {
     searchResult.innerHTML += `
@@ -129,6 +131,9 @@ async function search(){
         return;
     }
 
+    // put argument in the url
+    window.history.pushState({}, null, `?q=${query}`);
+
     showSearching();
 
     const artists = await fetch_data(query, "artist", 2);
@@ -183,6 +188,7 @@ async function artistClick(artist_id) {
 async function trackDownloadClick(track_id) {
   
   const track = searchData.find((track) => track.id == track_id);
+
   // console.log(track);
   console.log(`Downloading ${track.name} - ${track.artist}...`);
 

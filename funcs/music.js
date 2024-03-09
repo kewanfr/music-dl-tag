@@ -335,6 +335,54 @@ class MusicFunctions {
       path: finalFileName,
     };
   }
+
+  async downloadFromTrackId(track_id) {
+    const token = await this.spotifyClient.getToken();
+    const API_URL = `https://api.spotify.com/v1/tracks/${track_id}?market=FR`;
+
+    const response = await fetch(API_URL, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const item = await response.json();
+
+    let artist = item.artists.map((a) => a.name).join(" / ");
+
+    let track_data = {
+      name: utils.cleanName(item.name),
+      artist: utils.cleanName(artist),
+      album_artist: utils.cleanName(item.artists[0].name),
+      cover: item.album.images[0].url,
+
+      id: item.id,
+      uri: item.external_urls.spotify,
+      track_position: item.track_number,
+      artists: item.artists.map((a) => {
+        return {
+          name: a.name,
+          id: a.i,
+          uri: a.external_urls.spotify,
+        };
+      }),
+      album: {
+        id: item.album.id,
+        uri: item.album.external_urls.spotify,
+        name: utils.cleanName(item.album.name),
+        image: {
+          url: item.album.images[0].url,
+          height: item.album.images[0].height,
+          width: item.album.images[0].width,
+        },
+        release_date: item.album.release_date,
+        year: item.album.release_date.split("-")[0],
+      },
+    };
+
+    return this.downloadFromDatas(track_data);
+  }
 }
 
 export default MusicFunctions;

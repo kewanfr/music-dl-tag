@@ -15,12 +15,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const database = new Database(config);
 
-const musicController = new MusicFunctions(config);
+const musicController = new MusicFunctions(config, database);
 const lyricsController = new LyricsFunctions(config);
 const plexController = new PlexFunctions(config);
 
-const database = new Database(config);
+
 // Création de l'application
 const app = fastify();
 
@@ -82,7 +83,6 @@ app.post("/api/search", async (req, reply) => {
 app.post("/api/download", async (req, reply) => {
   let track_data = req.body;  
 
-
   let response = await musicController.downloadFromDatas(track_data);
 
   if (response.message && response.message == "File already exists") {
@@ -96,19 +96,30 @@ app.post("/api/download", async (req, reply) => {
 
   return reply.code(200).send({
     song: `${track_data.name} - ${track_data.artist}`,
-    downloaded: true,
-    songPath: response.path,
+    query: query || "No query",
+    track_data: {
+      name: items.tracks[0].name,
+      artist: items.tracks[0].artist,
+      album: items.tracks[0].album,
+      cover: items.tracks[0].cover,
+    },
+    ...response,
   });
 });
 
 app.post("/api/searchDownload", async (req, reply) => {
   let items = await musicController.search(req.body.query);
 
-  let response = await musicController.downloadFromDatas(items.tracks[0]);
+  let response = await musicController.downloadVerifQueue(items.tracks[0]);
   reply.code(200).send({
-    query: req.body.query || "No query",
-    downloaded: true,
-    songPath: response.path,
+    query: query || "No query",
+    track_data: {
+      name: items.tracks[0].name,
+      artist: items.tracks[0].artist,
+      album: items.tracks[0].album,
+      cover: items.tracks[0].cover,
+    },
+    ...response,
   });
 });
 
@@ -116,14 +127,18 @@ app.get("/api/searchDownload/:query", async (req, reply) => {
   let { query } = req.params;
 
   let items = await musicController.search(query);
-  let response = await musicController.downloadFromDatas(items.tracks[0]);
 
+  let response = await musicController.downloadVerifQueue(items.tracks[0]);
   reply.code(200).send({
     query: query || "No query",
-    downloaded: true,
-    songPath: response.path,
+    track_data: {
+      name: items.tracks[0].name,
+      artist: items.tracks[0].artist,
+      album: items.tracks[0].album,
+      cover: items.tracks[0].cover,
+    },
+    ...response
   });
-
 });
 
 app.get("/api/lyrics/:query", async (req, reply) => {
@@ -146,13 +161,32 @@ app.get("/api/playing", async (req, reply) => {
   reply.code(200).send(playing);
 });
 
+app.get("/api/downloadFromQueue", async (req, reply) => {
+  let response = await musicController.downloadNextSongInQueue();
+
+  reply.code(200).send(response);
+});
+
 
 app.get("/api/queue", async (req, reply) => {
-  let queue = await database.getQueue();
+  let queue = await database.getPendingQueue();
 
   reply.code(200).send(queue);
 });
 
+app.get("/api/allqueue", async (req, reply) => {
+  let queue = await database.getAllQueue();
+
+  reply.code(200).send(queue);
+});
+
+app.delete("/api/queue/:id", async (req, reply) => {
+  let { id } = req.params;
+
+  let response = await database.removeQueueItem(id);
+
+  reply.code(200).send(response);
+});
 
 
 try {

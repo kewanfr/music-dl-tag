@@ -19,6 +19,13 @@ export default class Database {
     });
 
     this.verifyDatabase();
+
+    this.QUEUE_STATUS = {
+      PENDING: 0,
+      DOWNLOADING: 1,
+      COMPLETED: 2,
+      ERROR: 3,
+    };
   }
   close() {
     this.db.close((err) => {
@@ -217,9 +224,35 @@ export default class Database {
     }
   }
 
+  async getPendingQueueSize() {
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        "SELECT COUNT(id) FROM download_queue WHERE status = ?",
+        [this.QUEUE_STATUS.PENDING],
+        (err, rows) => {
+          if (err) reject(err);
+          resolve(rows[0]["COUNT(id)"]);
+        }
+      );
+    });
+  }
+
   async getPendingQueue() {
     return new Promise((resolve, reject) => {
-      this.db.all(`SELECT * FROM download_queue WHERE status=0`, [], (err, rows) => {
+      this.db.all(
+        `SELECT * FROM download_queue WHERE status=0`,
+        [],
+        (err, rows) => {
+          if (err) reject(err);
+          resolve(rows);
+        }
+      );
+    });
+  }
+
+  async getAllQueue() {
+    return new Promise((resolve, reject) => {
+      this.db.all("SELECT * FROM download_queue", [], (err, rows) => {
         if (err) reject(err);
         resolve(rows);
       });

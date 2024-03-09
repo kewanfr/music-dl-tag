@@ -9,7 +9,7 @@ import id3 from "node-id3";
 import path from "path";
 
 // import LyricsFunctions from "./lyrics.js";
-import LyricsFunctions from "./lyricsGenius.js";
+import LyricsFunctions from "./lyrics.js";
 import MusicDownloader from "./downloader.js";
 import Database from "./database.js";
 

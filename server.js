@@ -7,7 +7,7 @@ import config from "./config.env.js";
 import utils from "./funcs/utils.js";
 import MusicFunctions from "./funcs/music.js";
 // import LyricsFunctions from "./funcs/lyrics.js";
-import LyricsFunctions from "./funcs/lyricsGenius.js";
+import LyricsFunctions from "./funcs/lyrics.js";
 import PlexFunctions from "./funcs/plex.js";
 import Database from "./funcs/database.js";
 import path from "path";

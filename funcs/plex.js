@@ -1,16 +1,68 @@
 import PlexAPI from "plex-api";
 import fs from "fs";
+import utils from "./utils.js";
 const LYBRARY_SECTION_TITLE = "Musique";
+
+const storeFolder = "./store";
+if (!fs.existsSync(storeFolder)) {
+  fs.mkdirSync(storeFolder);
+}
 
 class plexFunctions {
   constructor(config) {
-    this.plexClient = new PlexAPI({
+    this.plexOptions = {
       hostname: config.PLEX_URL,
       username: config.PLEX_USERNAME,
       password: config.PLEX_PASSWORD,
-    });
+      options: {
+        identifier: null,
+        product: `Plex Music API`,
+        version: utils.getProjectVersion(),
+        deviceName: config.DEVICE_NAME,
+      },
+    };
 
-    this.getActualPlayingLyrics();
+    this.init();
+  }
+
+  async init(){
+    this.clientIdentifier = await this.getIdentifierFromStore();
+
+    this.plexOptions.options.identifier = this.clientIdentifier;
+
+    this.plexClient = new PlexAPI(this.plexOptions);
+
+    this.plexClient.query("/").then((result) => {
+      // save clientIdentifier in store
+      console.log('result', result);
+      
+      this.clientIdentifier = result.MediaContainer.machineIdentifier;
+
+      console.log('clientIdentifier', this.clientIdentifier);
+      
+
+      this.saveIdentifierToStore(this.clientIdentifier);
+    });
+  }
+
+  async getIdentifierFromStore(){
+    try {
+      let identifier = await fs.readFileSync(`${storeFolder}/plexIdentifier.json`);
+      if (!identifier) {
+        return null;
+      }
+      if (identifier.length <2) {
+        return null;
+      }
+      return JSON.parse(identifier).identifier || null;
+    } catch (error) {
+      return null;
+    }
+  }
+  
+
+  async saveIdentifierToStore(identifier){
+    await fs.writeFileSync(`${storeFolder}/plexIdentifier.json`, JSON.stringify({identifier: identifier}));
   }
 
   async getActualSessions() {

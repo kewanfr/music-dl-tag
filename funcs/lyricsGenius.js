@@ -36,6 +36,14 @@ class LyricsGeniusFunctions {
     return songs;
   }
 
+  async cleanHtmlLinks(html) {
+    return html.replace(/<a[^>]*>([^<]+)<\/a>/g, "$1");
+  }
+
+  async cleanHtmlTags(html) {
+    return html.replace(/<[^>]*>/g, "");
+  }
+
   async getLyricsFromURL(url) {
     if (!url || url.length === 0) {
       throw new Error("No URL provided.");
@@ -59,7 +67,7 @@ class LyricsGeniusFunctions {
       return "No lyrics found.";
     }
 
-    return lyricsHTML.replace(/<br>/g, "\n");
+    return this.cleanHtmlTags(lyricsHTML.replace(/<br>/g, "\n"));
   }
 
   async getLyrics(query) {

@@ -1,6 +1,7 @@
 import utils from "./utils.js"; // Import utils functions
 import { JSDOM } from "jsdom";
 import fs from "fs";
+import LyricsGeniusFunctions from "./lyricsGenius.js";
 
 function findLyricsCommentNode(dom) {
   const iterator = dom.window.document.createNodeIterator(
@@ -24,6 +25,8 @@ function findLyricsCommentNode(dom) {
 class LyricsFunctions {
   constructor(config) {
     this.AZ_SUGGEST_URL = "https://search.azlyrics.com/suggest.php";
+
+    this.lyricsGenius = new LyricsGeniusFunctions(config);
   }
 
   async search(query) {
@@ -69,6 +72,10 @@ class LyricsFunctions {
     let items = await this.search(query);
 
     if (items.length === 0) {
+      let geniusLyrics = await this.lyricsGenius.getLyrics(query);
+      if (geniusLyrics !== "No lyrics found.") {
+        return geniusLyrics;
+      }
       return "No lyrics found.";
     }
 
